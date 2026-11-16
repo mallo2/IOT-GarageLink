@@ -1,6 +1,5 @@
 import core.Actor.{DispatcherActor, ParticularActor, TemperatureActor}
-import core.FakeUdpStream
-import core.Stream.StreamObserver
+import core.Stream.{FakeUdpStream, StreamObserver}
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -9,6 +8,7 @@ import org.apache.pekko.actor.{ActorRef, ActorSystem, Props}
 
 @main def main(): Unit = {
   FakeUdpStream.start()
+
   val system = ActorSystem("iot")
   val temperatureActor = system.actorOf(TemperatureActor.props(), "temp")
   val particularActor = system.actorOf(ParticularActor.props(),"particular")

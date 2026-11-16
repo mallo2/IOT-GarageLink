@@ -8,4 +8,6 @@ lazy val app       = project.dependsOn(protocol).settings(
     "io.reactivex.rxjava3" % "rxjava" % "3.1.9",
     "org.apache.pekko" %% "pekko-actor-typed" % "1.1.2"
   )
+
+
 )
