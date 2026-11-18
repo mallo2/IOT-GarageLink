@@ -1,7 +1,9 @@
+
 *.class
 *.tasty
 *.log
 hs_err_pid*
-*/.idea/
-*/.bsp/
-*/target/
+target/
+.idea/
+.bsp/
+.env
