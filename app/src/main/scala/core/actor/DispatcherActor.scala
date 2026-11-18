@@ -6,7 +6,6 @@ import org.apache.pekko.actor.{Actor, ActorRef, Props}
 
 
 object DispatcherActor {
-   case class FakeReading(id: String, value: Double, time: Int)
 
   /**
    * Create Props for a DispatcherActor .
