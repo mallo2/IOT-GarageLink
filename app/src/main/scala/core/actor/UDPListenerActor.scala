@@ -3,11 +3,12 @@ package core.actor
 import org.apache.pekko.actor.{Actor, ActorRef, Props}
 import org.apache.pekko.io.Udp
 import org.apache.pekko.io.IO
-
 import core.traits.Logging
-import core.datatype.ReceivedData
+import core.datatype.{ReceivedData, ReceivedParticuleData, ReceivedTempData}
 
 import java.net.InetSocketAddress
+import java.time.LocalDateTime
+import scala.util.Try
 
 object UDPListenerActor {
 
@@ -36,13 +37,62 @@ class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor
   def ready(): Receive = {
     case Udp.Received(data, remote) =>
       val processed = process_data(data.utf8String)
-      logger.info(s"UDP data received $processed")
       nextActor ! processed
-    // I deleted unbound instruction, we can see if we need it
   }
 
-  def process_data(data:String): Option[ReceivedData] = {
-       //TODO
+  // rawData: name;values;timestamp
+  def process_data(rawData:String): Option[ReceivedData] = {
+       val splittedData= rawData.split(";",-1)
+
+       if(splittedData.length !=3)
+         return None
+
+       val sensorName= splittedData(0).trim
+       val rawValues= splittedData(1).split(",",-1).map(_.trim)
+       val timeStamp= splittedData(2).trim
+
+       if(sensorName.isEmpty || rawValues.isEmpty || timeStamp.isEmpty)
+         return None
+
+       val values = rawValues.map(v => Try(v.toDouble).toOption)
+       val flattenValues = values.flatten.toList
+
+        if (Try(java.time.LocalTime.parse(timeStamp)).isFailure)
+          return None
+
+        sensorName.match {
+          case "pms5003" =>
+            if(values.length == 3){
+              Some(
+                ReceivedParticuleData(
+                  id= sensorName,
+                  ufp= flattenValues(0),
+                  fp= flattenValues(1),
+                  p= flattenValues(2),
+                  time= timeStamp
+                )
+              )
+            }else{
+              None
+            }
+
+          case "dht11" =>
+            if(values.length == 2){
+              Some(
+                 ReceivedTempData(
+                   id= sensorName,
+                   temperature = flattenValues(0),
+                   humidity = flattenValues(1),
+                   time = timeStamp
+                 )
+              )
+            }else{
+              None
+            }
+
+          case _ => None
+        }
+
   }
-  
+
 }
