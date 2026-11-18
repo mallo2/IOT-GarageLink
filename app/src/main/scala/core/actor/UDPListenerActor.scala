@@ -5,6 +5,7 @@ import org.apache.pekko.io.Udp
 import org.apache.pekko.io.IO
 
 import core.traits.Logging
+import core.datatype.ReceivedData
 
 import java.net.InetSocketAddress
 
@@ -34,9 +35,14 @@ class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor
 
   def ready(): Receive = {
     case Udp.Received(data, remote) =>
-      val processed = data.utf8String // Here we should process data
+      val processed = process_data(data.utf8String)
       logger.info(s"UDP data received $processed")
       nextActor ! processed
     // I deleted unbound instruction, we can see if we need it
   }
+
+  def process_data(data:String): Option[ReceivedData] = {
+       //TODO
+  }
+  
 }

@@ -1,6 +1,7 @@
 package core.actor
 
-import core.stream.FakeReading
+import core.datatype.ReceivedData
+import core.traits.Logging
 import org.apache.pekko.actor.{Actor, ActorRef, Props}
 
 
@@ -18,10 +19,8 @@ object DispatcherActor {
    def props(temperatureActor: ActorRef, particularActor: ActorRef): Props = Props(new DispatcherActor(temperatureActor,particularActor))
 }
 
-class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef) extends Actor {
+class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef) extends Actor,Logging {
   def receive: Receive = {
-    case FakeReading("TempSensor", value, _)       => temperatureActor ! value
-    case FakeReading("ParticularSensor", value, _) => particularActor ! value
-    case FakeReading(id, _, _)                     => println(s"ignored $id")
+    case v             => logger.debug(s"ignored $v")
   }
 }
