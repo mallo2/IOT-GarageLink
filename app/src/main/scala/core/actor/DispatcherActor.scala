@@ -1,6 +1,6 @@
 package core.actor
 
-import core.datatype.ReceivedData
+import core.datatype.{ReceivedData, ReceivedParticuleData, ReceivedTempData}
 import core.traits.Logging
 import org.apache.pekko.actor.{Actor, ActorRef, Props}
 
@@ -20,6 +20,14 @@ object DispatcherActor {
 
 class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef) extends Actor,Logging {
   def receive: Receive = {
-    case v             => logger.debug(s"ignored $v")
+    case Some(d: ReceivedData) => handle(d)
+    case other => logger.debug(s"ignored $other")
   }
+
+  private def handle(d: ReceivedData): Unit = d match
+    case t: ReceivedTempData =>
+      temperatureActor ! TemperatureActor.Record(t.temperature)
+
+    case p: ReceivedParticuleData =>
+      particularActor ! p
 }
