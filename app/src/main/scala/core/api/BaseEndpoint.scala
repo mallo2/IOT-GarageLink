@@ -1,5 +1,6 @@
-package app.http
+package core.api
 
+import core.api.ErrorResponse
 import io.circe.{Decoder, Encoder}
 import sttp.model.StatusCode
 import sttp.tapir.*

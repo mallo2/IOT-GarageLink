@@ -1,7 +1,8 @@
-package app.http
+package core.traits
 
 import sttp.tapir.server.ServerEndpoint
+
 import scala.concurrent.Future
 
-trait Controller:
+trait ApiController:
   def endpoints: List[ServerEndpoint[Any, Future]]

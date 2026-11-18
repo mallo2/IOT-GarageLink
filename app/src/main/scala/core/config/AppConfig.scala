@@ -14,5 +14,13 @@ object AppConfig {
 
   val udpPort: Int =
     dotenv.get("UDP_PORT", "5000").toInt
+    
+  val httpHost: String =
+    dotenv.get("HTTP_HOST", "0.0.0.0")
 
+  val httpPort: Int =
+    dotenv.get("HTTP_PORT", "8080").toInt
+
+  val corsAllowedOrigins: List[String] =
+    List("http://localhost:3000")
 }

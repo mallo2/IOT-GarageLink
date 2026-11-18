@@ -1,12 +1,12 @@
-package app.http.controllers
+package core.api.controllers
 
-import app.http.Controller
+import core.traits.ApiController
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.concurrent.Future
 
-class HealthController extends Controller:
+class HealthController extends ApiController:
   private val health =
     endpoint
       .get
