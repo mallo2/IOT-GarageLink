@@ -25,7 +25,9 @@ object UDPListenerActor {
 }
 
 class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor, Logging {
+
   import context.system
+
   IO(Udp) ! Udp.Bind(self, new InetSocketAddress(ip, port)) // IP,PORT
 
   def receive: Receive = {
@@ -41,58 +43,56 @@ class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor
   }
 
   // rawData: name;values;timestamp
-  def process_data(rawData:String): Option[ReceivedData] = {
-       val splittedData= rawData.split(";",-1)
+  def process_data(rawData: String): Option[ReceivedData] = {
+    val splittedData = rawData.split(";", -1)
 
-       if(splittedData.length !=3)
-         return None
+    if (splittedData.length != 3)
+      return None
 
-       val sensorName= splittedData(0).trim
-       val rawValues= splittedData(1).split(",",-1).map(_.trim)
-       val timeStamp= splittedData(2).trim
+    val sensorName = splittedData(0).trim
+    val rawValues = splittedData(1).split(",", -1).map(_.trim)
+    val timeStamp = splittedData(2).trim
 
-       if(sensorName.isEmpty || rawValues.isEmpty || timeStamp.isEmpty)
-         return None
+    if (sensorName.isEmpty || rawValues.isEmpty || timeStamp.isEmpty)
+      return None
 
-       val values = rawValues.map(v => Try(v.toDouble).toOption)
-       val flattenValues = values.flatten.toList
+    val values = rawValues.map(v => Try(v.toDouble).toOption)
+    val flattenValues = values.flatten.toList
 
-        if (Try(java.time.LocalTime.parse(timeStamp)).isFailure)
-          return None
+    if (Try(java.time.LocalTime.parse(timeStamp)).isFailure)
+      return None
 
-        sensorName.match {
-          case "pms5003" =>
-            if(values.length == 3){
-              Some(
-                ReceivedParticuleData(
-                  id= sensorName,
-                  ufp= flattenValues(0),
-                  fp= flattenValues(1),
-                  p= flattenValues(2),
-                  time= timeStamp
-                )
-              )
-            }else{
-              None
-            }
-
-          case "dht11" =>
-            if(values.length == 2){
-              Some(
-                 ReceivedTempData(
-                   id= sensorName,
-                   temperature = flattenValues(0),
-                   humidity = flattenValues(1),
-                   time = timeStamp
-                 )
-              )
-            }else{
-              None
-            }
-
-          case _ => None
+    sensorName.match {
+      case "pms5003" =>
+        if (values.length == 3) {
+          Some(
+            ReceivedParticuleData(
+              id = sensorName,
+              ufp = flattenValues(0),
+              fp = flattenValues(1),
+              p = flattenValues(2),
+              time = timeStamp
+            )
+          )
+        } else {
+          None
         }
 
-  }
+      case "dht11" =>
+        if (values.length == 2) {
+          Some(
+            ReceivedTempData(
+              id = sensorName,
+              temperature = flattenValues(0),
+              humidity = flattenValues(1),
+              time = timeStamp
+            )
+          )
+        } else {
+          None
+        }
 
+      case _ => None
+    }
+  }
 }

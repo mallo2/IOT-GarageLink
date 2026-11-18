@@ -1,19 +1,53 @@
 import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, UDPListenerActor}
-import org.apache.pekko.actor.ActorSystem
+import core.api.HttpServer
+import core.api.controllers.{HealthController, TemperatureController}
 import core.config.AppConfig
+import org.apache.pekko.actor.typed.scaladsl.adapter.*
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.typed
 
-@main def main(): Unit = {
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
 
-  // Initiating Actors
-  val system = ActorSystem("iot")
-  val temperatureActor = system.actorOf(TemperatureActor.props(), "temp")
-  val particularActor = system.actorOf(ParticularActor.props(),"particular")
-  val dispatcherActor = system.actorOf(DispatcherActor.props(temperatureActor,particularActor), "filter")
-  val udpListenerActor = system.actorOf(UDPListenerActor.props(dispatcherActor,AppConfig.udpHost,AppConfig.udpPort ), "udp")
+final case class Actors(
+  temperature: ActorRef,
+  particular: ActorRef,
+  dispatcher: ActorRef,
+  udpListener: ActorRef
+)
 
+private def createActors()(using system: ActorSystem): Actors =
+  val temperature = system.actorOf(TemperatureActor.props(), "temp")
+  val particular  = system.actorOf(ParticularActor.props(), "particular")
+  val dispatcher  = system.actorOf(DispatcherActor.props(temperature, particular), "filter")
+  val udpListener = system.actorOf(UDPListenerActor.props(dispatcher, AppConfig.udpHost, AppConfig.udpPort), "udp")
 
-  //Sleeping to weight sended data
-  Thread.sleep(100000)
-  system.terminate()
-}
+  Actors(temperature, particular, dispatcher, udpListener)
 
+private def startHttpServer(actors: Actors)(using typed.ActorSystem[Nothing], ExecutionContext): Unit =
+  HttpServer
+    .start(
+      controllers = List(
+        HealthController(),
+        TemperatureController(actors.temperature)
+      ),
+      host = AppConfig.httpHost,
+      port = AppConfig.httpPort,
+      allowedOrigins = AppConfig.corsAllowedOrigins
+    )
+    .foreach { binding =>
+      val port = binding.localAddress.getPort
+      println(s"Server started at http://localhost:$port")
+      println(s"Swagger UI: http://localhost:$port/docs")
+    }
+
+@main def main(): Unit =
+  given system: ActorSystem                     = ActorSystem("iot")
+  given typedSystem: typed.ActorSystem[Nothing] = system.toTyped
+  given ExecutionContext                        = system.dispatcher
+
+  val actors = createActors()
+  startHttpServer(actors)
+
+  sys.addShutdownHook(system.terminate())
+  Await.result(system.whenTerminated, Duration.Inf)
