@@ -1,4 +1,4 @@
-package core.Actor
+package core.actor
 
 import org.apache.pekko.actor.{Actor, Props}
 

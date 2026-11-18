@@ -1,4 +1,4 @@
-package core.Stream
+package core.stream
 
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable

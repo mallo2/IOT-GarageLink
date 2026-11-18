@@ -1,6 +1,6 @@
-package core.Actor
+package core.actor
 
-import core.Stream.FakeReading
+import core.stream.FakeReading
 import org.apache.pekko.actor.{Actor, ActorRef, Props}
 
 

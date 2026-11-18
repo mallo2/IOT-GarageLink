@@ -1,24 +1,19 @@
-import core.Actor.{DispatcherActor, ParticularActor, TemperatureActor}
-import core.Stream.{FakeUdpStream, StreamObserver}
-import io.reactivex.rxjava3.core.Observer
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.subjects.PublishSubject
-import org.apache.pekko.actor.{ActorRef, ActorSystem, Props}
-
+import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, UDPListenerActor}
+import org.apache.pekko.actor.ActorSystem
+import core.config.AppConfig
 
 @main def main(): Unit = {
-  FakeUdpStream.start()
 
+  // Initiating Actors
   val system = ActorSystem("iot")
   val temperatureActor = system.actorOf(TemperatureActor.props(), "temp")
   val particularActor = system.actorOf(ParticularActor.props(),"particular")
   val dispatcherActor = system.actorOf(DispatcherActor.props(temperatureActor,particularActor), "filter")
+  val udpListenerActor = system.actorOf(UDPListenerActor.props(dispatcherActor,AppConfig.udpHost,AppConfig.udpPort ), "udp")
 
-  val source= FakeUdpStream.subject
-  source.subscribe(StreamObserver(dispatcherActor))
 
-  Thread.sleep(5000)
-  FakeUdpStream.stop()
+  //Sleeping to weight sended data
+  Thread.sleep(100000)
   system.terminate()
 }
 
