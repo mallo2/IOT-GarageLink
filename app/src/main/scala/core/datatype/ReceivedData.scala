@@ -17,3 +17,8 @@ case class ReceivedTempData(
                              humidity: Double,
                              time: String
                            ) extends ReceivedData
+
+
+case class ReceivedRfidData(
+                              tag: String
+                            ) extends ReceivedData
