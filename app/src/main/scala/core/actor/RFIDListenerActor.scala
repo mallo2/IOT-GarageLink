@@ -2,10 +2,8 @@ package core.actor
 
 import com.phidget22.RFID
 import org.apache.pekko.actor.{Actor, ActorRef, Props}
-import org.apache.pekko.io.Udp
-import org.apache.pekko.io.IO
 import core.traits.Logging
-import core.datatype.{ReceivedData, ReceivedParticuleData, ReceivedTempData, ReceivedRfidData}
+import core.datatype.{ReceivedData, ReceivedRfidData}
 
 import java.time.LocalDateTime
 
@@ -24,12 +22,13 @@ object RFIDListenerActor {
 
 class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
 
-  private case object Attached // le sensor est dispo
+  private case object Attached // le sensor est dispo 
+  private case object Detached // plus dispo
   private case class TagRead(tag: String) // y a une data
-
   private val reader = new RFID()
 
-  reader.addAttachListener(_ => self ! Attached)                       
+  reader.addAttachListener(_ => self ! Attached)
+  reader.addDetachListener(_ => self ! Detached)
   reader.addTagListener(e => self ! TagRead(e.getTag))
   reader.open()
 
@@ -43,6 +42,10 @@ class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
     case TagRead(tag) =>
       val processed = process_data(tag)
       nextActor ! processed
+
+    case Detached =>
+      logger.warn("RFID reader detached, waiting for it to come back")
+      context.become(receive) 
   }
 
   def process_data(rawTag: String): Option[ReceivedData] = {
@@ -51,7 +54,7 @@ class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
     if (tag.isEmpty)
       return None
 
-    Some(ReceivedRfidData(tag = tag))
+    Some(ReceivedRfidData(tag = tag, time = LocalDateTime.now()))
   }
 
   override def postStop(): Unit = reader.close()

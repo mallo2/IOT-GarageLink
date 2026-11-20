@@ -1,5 +1,6 @@
 package core.datatype
 
+import java.time.LocalDateTime
 
 sealed trait ReceivedData
 
@@ -20,5 +21,6 @@ case class ReceivedTempData(
 
 
 case class ReceivedRfidData(
-                              tag: String
+                              tag: String,
+                              time: LocalDateTime
                             ) extends ReceivedData
