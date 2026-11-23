@@ -1,4 +1,5 @@
-import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, UDPListenerActor, RFIDListenerActor, RFIDActor}
+import core.actor.datagetter.{RFIDListenerActor, UDPListenerActor}
+import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, RFIDActor}
 import core.api.HttpServer
 import core.api.controllers.{HealthController, TemperatureController}
 import core.config.AppConfig

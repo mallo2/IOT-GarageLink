@@ -2,6 +2,9 @@ package core.config
 
 import io.github.cdimascio.dotenv.Dotenv
 
+/**
+ * App configuration that get values from the .env
+ */
 object AppConfig {
 
   private val dotenv = Dotenv.configure()

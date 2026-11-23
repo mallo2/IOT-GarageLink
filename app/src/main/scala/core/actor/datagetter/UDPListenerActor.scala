@@ -1,13 +1,13 @@
-package core.actor
+package core.actor.datagetter
 
-import org.apache.pekko.actor.{Actor, ActorRef, Props}
-import org.apache.pekko.io.Udp
-import org.apache.pekko.io.IO
-import core.traits.Logging
+
 import core.datatype.{ReceivedData, ReceivedParticuleData, ReceivedTempData}
+import core.traits.Logging
+import org.apache.pekko.actor.{Actor, ActorRef, Props}
+import org.apache.pekko.io.{IO, Udp}
 
 import java.net.InetSocketAddress
-import java.time.LocalDateTime
+import java.time.LocalTime
 import scala.util.Try
 
 object UDPListenerActor {
@@ -38,12 +38,18 @@ class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor
 
   def ready(): Receive = {
     case Udp.Received(data, remote) =>
-      val processed = process_data(data.utf8String)
+      val processed = checkAndFormatData(data.utf8String)
       nextActor ! processed
   }
 
-  // rawData: name;values;timestamp
-  def process_data(rawData: String): Option[ReceivedData] = {
+  /**
+   * Check whether the rawdata received respect the expected format (sensorName;Values;HH:mm:ss) and transform it into a new one
+   *
+   * @param rawData The data received from udp port in a raw format
+   *
+   * @return Some(data) if the rawdata received respect the expected format, None otherwise
+   */
+  private def checkAndFormatData(rawData: String): Option[ReceivedData] = {
     val splittedData = rawData.split(";", -1)
 
     if (splittedData.length != 3)
@@ -59,7 +65,7 @@ class UDPListenerActor(nextActor: ActorRef, ip: String, port: Int) extends Actor
     val values = rawValues.map(v => Try(v.toDouble).toOption)
     val flattenValues = values.flatten.toList
 
-    if (Try(java.time.LocalTime.parse(timeStamp)).isFailure)
+    if (Try(LocalTime.parse(timeStamp)).isFailure)
       return None
 
     sensorName.match {

@@ -9,6 +9,11 @@ object TemperatureActor {
 
   private val MaxHistory = 1000
 
+  /**
+   * Create Props for a Temperature Actor .
+   *
+   * @return a Props for creating a Temperature Actor.
+   */
   def props(): Props = Props(new TemperatureActor)
 }
 

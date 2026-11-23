@@ -1,9 +1,10 @@
-package core.actor
+package core.actor.datagetter
 
 import com.phidget22.RFID
-import org.apache.pekko.actor.{Actor, ActorRef, Props}
-import core.traits.Logging
+import core.actor.datagetter.RFIDListenerActor
 import core.datatype.{ReceivedData, ReceivedRfidData}
+import core.traits.Logging
+import org.apache.pekko.actor.{Actor, ActorRef, Props}
 
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -49,12 +50,19 @@ class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
       context.become(receive) 
   }
 
-  def process_data(rawTag: String): Option[ReceivedData] = {
+
+  /**
+   * Check whether the rawTag received respect the expected format and transform it into a new one
+   *
+   * @param rawTag the raw tag received from the RFID phidget
+   *
+   * @return Some(data) if the rawTag respect the expected format, None otherwise
+   */
+  private def process_data(rawTag: String): Option[ReceivedData] = {
     val tag = rawTag.trim
 
     if (tag.isEmpty)
       return None
-
 
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
     val rfidtime = LocalTime.now()

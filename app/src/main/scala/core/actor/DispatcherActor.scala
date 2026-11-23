@@ -25,6 +25,11 @@ class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef, rfi
     case other => logger.debug(s"ignored $other")
   }
 
+  /**
+   * Dispatch the value to the actor who manage it
+   *
+   * @param d the data received from other actors
+   */
   private def handle(d: ReceivedData): Unit = d match
     case t: ReceivedTempData =>
       temperatureActor ! TemperatureActor.Record(t.temperature)

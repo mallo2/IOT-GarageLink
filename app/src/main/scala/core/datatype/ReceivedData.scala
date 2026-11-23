@@ -1,7 +1,8 @@
 package core.datatype
 
-import java.time.LocalDateTime
-
+/**
+ * Type to represent the data received form the sensor
+ */
 sealed trait ReceivedData
 
 case class ReceivedParticuleData(
