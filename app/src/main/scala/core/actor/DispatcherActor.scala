@@ -33,6 +33,5 @@ class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef, rfi
       particularActor ! p
 
     case r: ReceivedRfidData =>
-      logger.info(s"RFID tag=${r.tag} at ${r.time}")
       rfidActor ! r
 }

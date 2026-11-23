@@ -22,5 +22,5 @@ case class ReceivedTempData(
 
 case class ReceivedRfidData(
                               tag: String,
-                              time: LocalDateTime
+                              time: String
                             ) extends ReceivedData

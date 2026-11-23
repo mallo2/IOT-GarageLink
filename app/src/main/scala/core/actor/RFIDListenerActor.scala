@@ -5,7 +5,8 @@ import org.apache.pekko.actor.{Actor, ActorRef, Props}
 import core.traits.Logging
 import core.datatype.{ReceivedData, ReceivedRfidData}
 
-import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 object RFIDListenerActor {
@@ -22,9 +23,9 @@ object RFIDListenerActor {
 
 class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
 
-  private case object Attached // le sensor est dispo 
-  private case object Detached // plus dispo
-  private case class TagRead(tag: String) // y a une data
+  private case object Attached 
+  private case object Detached 
+  private case class TagRead(tag: String)
   private val reader = new RFID()
 
   reader.addAttachListener(_ => self ! Attached)
@@ -54,8 +55,11 @@ class RFIDListenerActor(nextActor: ActorRef) extends Actor, Logging {
     if (tag.isEmpty)
       return None
 
-    Some(ReceivedRfidData(tag = tag, time = LocalDateTime.now()))
-  }
 
-  override def postStop(): Unit = reader.close()
+    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+    val rfidtime = LocalTime.now()
+    val formattedTime = rfidtime.format(formatter) 
+
+    Some(ReceivedRfidData(tag = tag, time = formattedTime))
+  }
 }
