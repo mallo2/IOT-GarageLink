@@ -1,4 +1,5 @@
-import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, UDPListenerActor}
+import core.actor.datagetter.{RFIDListenerActor, UDPListenerActor}
+import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, RFIDActor}
 import core.api.HttpServer
 import core.api.controllers.{HealthController, TemperatureController}
 import core.config.AppConfig
@@ -12,17 +13,21 @@ import scala.concurrent.{Await, ExecutionContext}
 final case class Actors(
   temperature: ActorRef,
   particular: ActorRef,
+  rfid: ActorRef,
   dispatcher: ActorRef,
-  udpListener: ActorRef
+  udpListener: ActorRef,
+  rfidListener: ActorRef
 )
 
 private def createActors()(using system: ActorSystem): Actors =
   val temperature = system.actorOf(TemperatureActor.props(), "temp")
   val particular  = system.actorOf(ParticularActor.props(), "particular")
-  val dispatcher  = system.actorOf(DispatcherActor.props(temperature, particular), "filter")
+  val rfid        = system.actorOf(RFIDActor.props(), "rfid")
+  val dispatcher  = system.actorOf(DispatcherActor.props(temperature, particular, rfid), "filter")
   val udpListener = system.actorOf(UDPListenerActor.props(dispatcher, AppConfig.udpHost, AppConfig.udpPort), "udp")
+  val rfidListener = system.actorOf(RFIDListenerActor.props(dispatcher), "rfid-listener")
 
-  Actors(temperature, particular, dispatcher, udpListener)
+  Actors(temperature, particular, rfid, dispatcher, udpListener, rfidListener)
 
 private def startHttpServer(actors: Actors)(using typed.ActorSystem[Nothing], ExecutionContext): Unit =
   HttpServer

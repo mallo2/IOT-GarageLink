@@ -1,6 +1,8 @@
 package core.datatype
 
-
+/**
+ * Type to represent the data received form the sensor
+ */
 sealed trait ReceivedData
 
 case class ReceivedParticuleData(
@@ -17,3 +19,9 @@ case class ReceivedTempData(
                              humidity: Double,
                              time: String
                            ) extends ReceivedData
+
+
+case class ReceivedRfidData(
+                              tag: String,
+                              time: String
+                            ) extends ReceivedData
