@@ -18,13 +18,17 @@ RTCZero rtc;
 
 // Temperature sensor pin
 const int DHTPIN = 2;
+const int TEMPALARM = 40;
+
+//buzzer sensor pin
+const int BUZZERPIN = 5;
 
 void connectWifi() {
   Serial.println("Connecting to Wi-Fi...");
   while (WiFi.begin(ssid, password) != WL_CONNECTED) {
     delay(2000);
   }
-  Serial.print("Wi-Fi connected ! IP : ");
+  Serial.print("Wi-Fi connected IP : ");
   Serial.println(WiFi.localIP());
   udp.begin(5001);
 
@@ -150,6 +154,9 @@ bool TempSensor(uint16_t TempSensorValues[2]) {
 }
 
 void setup() {
+  pinMode(BUZZERPIN, OUTPUT);
+  digitalWrite(BUZZERPIN, LOW);
+
   Serial.begin(115200);
   Serial1.begin(9600);
   connectWifi();
@@ -169,5 +176,13 @@ void loop() {
   if (TempSensor(TempSensorValues)) {
     String message = "dht11;" + String(TempSensorValues[0]) + "," + String(TempSensorValues[1]) + ";" + timeString();
     sendUdp(message);
+
+      if (TempSensorValues[0] > TEMPALARM) {
+        tone(BUZZERPIN, 3000);
+        delay(100);
+        noTone(BUZZERPIN);
+        delay(100);
+      }
+
   }
 }
