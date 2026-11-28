@@ -38,5 +38,5 @@ class DispatcherActor(temperatureActor: ActorRef, particularActor: ActorRef, rfi
       particularActor ! p
 
     case r: ReceivedRfidData =>
-      rfidActor ! r
+      rfidActor ! RFIDActor.Scan(r.tag, r.time)
 }

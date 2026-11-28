@@ -1,7 +1,7 @@
 import core.actor.datagetter.{RFIDListenerActor, UDPListenerActor}
 import core.actor.{DispatcherActor, ParticularActor, TemperatureActor, RFIDActor}
 import core.api.HttpServer
-import core.api.controllers.{HealthController, TemperatureController}
+import core.api.controllers.{HealthController, TemperatureController, RFIDController}
 import core.config.AppConfig
 import org.apache.pekko.actor.typed.scaladsl.adapter.*
 import org.apache.pekko.actor.{ActorRef, ActorSystem}
@@ -34,7 +34,8 @@ private def startHttpServer(actors: Actors)(using typed.ActorSystem[Nothing], Ex
     .start(
       controllers = List(
         HealthController(),
-        TemperatureController(actors.temperature)
+        TemperatureController(actors.temperature),
+        RFIDController(actors.rfid)
       ),
       host = AppConfig.httpHost,
       port = AppConfig.httpPort,
